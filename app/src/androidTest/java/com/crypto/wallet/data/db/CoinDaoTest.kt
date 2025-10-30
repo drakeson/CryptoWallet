@@ -6,6 +6,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.crypto.wallet.data.models.Coin
+import com.crypto.wallet.getOrAwaitValue
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.*
@@ -56,21 +57,20 @@ class CoinDaoTest {
     fun insertAndRetrieveCoin() = runBlocking {
         coinDao.insertAll(listOf(testCoin))
 
-        val coins = coinDao.getCoins().value
-        assertNotNull(coins)
-        assertEquals(1, coins?.size)
-        assertEquals(testCoin.id, coins?.first()?.id)
+        val coins = coinDao.getCoins().getOrAwaitValue()
+        assertEquals(1, coins.size)
+        assertEquals(testCoin.id, coins.first().id)
     }
 
     @Test
     fun insertDuplicateCoinReplacesOld() = runBlocking {
         coinDao.insertAll(listOf(testCoin))
-
         val updatedCoin = testCoin.copy(current_price = 50000.0)
         coinDao.insertAll(listOf(updatedCoin))
 
-        val coins = coinDao.getCoins().value
-        assertEquals(1, coins?.size)
-        assertEquals(50000.0, coins?.first()?.current_price!!, 0.01)
+        val coins = coinDao.getCoins().getOrAwaitValue()
+        assertEquals(1, coins.size)
+        assertEquals(50000.0, coins.first().current_price, 0.01)
     }
+
 }
